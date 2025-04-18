@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>구글 드라이브 연동 Handlebars 에디터</title>
+    <title>고급 Handlebars 에디터</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/ace.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/ext-language_tools.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/mode-handlebars.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/theme-monokai.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/theme-twilight.js"></script>
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/theme-dracula.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/theme-tomorrow_night.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/worker-html.js"></script>
     <style>
         :root {
             --bg-color: #1e1e1e;
@@ -29,7 +30,6 @@
             --warning-color: #ff9800;
             --error-color: #f44336;
             --modal-bg: #2a2a2a;
-            --google-blue: #4285f4;
         }
         
         * {
@@ -86,84 +86,28 @@
             border-right: 1px solid var(--border-color);
         }
         
-        .action-button {
-            padding: 8px 10px;
-            background-color: var(--button-bg);
-            color: var(--font-color);
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 10px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .action-button:hover {
-            background-color: var(--button-hover);
-        }
-        
-        .action-button.primary {
+        .new-tab {
             background-color: var(--header-bg);
             color: white;
-        }
-        
-        .action-button.primary:hover {
-            opacity: 0.9;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            margin-left: auto;
-            padding-right: 10px;
-        }
-        
-        .user-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .user-name {
-            font-size: 14px;
-            max-width: 150px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .google-sign-in {
-            background-color: white;
-            color: #444;
-            display: flex;
-            align-items: center;
-            padding: 5px 10px;
+            padding: 5px 15px;
             border-radius: 4px;
-            font-size: 14px;
-            margin-left: auto;
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
             cursor: pointer;
-            transition: background-color 0.3s;
         }
         
-        .google-sign-in:hover {
-            background-color: #f5f5f5;
-        }
-        
-        .google-icon {
-            width: 18px;
-            height: 18px;
-            margin-right: 8px;
+        .new-tab:hover {
+            opacity: 0.9;
         }
         
         .actions {
             margin-left: auto;
             display: flex;
-            gap: 5px;
+            gap: 10px;
         }
         
-        .icon-button {
+        .action-button {
             width: 30px;
             height: 30px;
             display: flex;
@@ -173,7 +117,7 @@
             border-radius: 3px;
         }
         
-        .icon-button:hover {
+        .action-button:hover {
             background-color: var(--button-hover);
         }
         
@@ -227,6 +171,21 @@
             flex-direction: column;
             border-right: 1px solid var(--border-color);
             overflow: hidden;
+        }
+        
+        .editor-header {
+            padding: 10px;
+            background-color: var(--header-bg);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .editor-header button {
+            padding: 5px 10px;
+            background-color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
         
         .tab-bar {
@@ -418,7 +377,7 @@
             border-radius: 3px;
         }
         
-        /* 키보드 단축키 안내 */
+        /* 단축키 도움말 */
         .keyboard-shortcuts {
             position: absolute;
             top: 50%;
@@ -479,183 +438,6 @@
             color: var(--font-color);
         }
         
-        /* 구글 드라이브 파일 목록 */
-        .drive-modal {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: var(--modal-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 20px;
-            z-index: 200;
-            width: 600px;
-            max-width: 90%;
-            max-height: 80%;
-            display: none;
-            flex-direction: column;
-        }
-        
-        .drive-modal.active {
-            display: flex;
-        }
-        
-        .drive-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .drive-modal-header h2 {
-            font-size: 16px;
-        }
-        
-        .drive-filter {
-            display: flex;
-            margin-bottom: 15px;
-        }
-        
-        .drive-filter input {
-            flex: 1;
-            padding: 8px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--font-color);
-            border-radius: 3px;
-        }
-        
-        .drive-files-container {
-            flex: 1;
-            overflow-y: auto;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
-            margin-bottom: 15px;
-        }
-        
-        .drive-files-list {
-            list-style: none;
-        }
-        
-        .drive-file-item {
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-        }
-        
-        .drive-file-item:hover {
-            background-color: var(--dropdown-hover);
-        }
-        
-        .drive-file-icon {
-            margin-right: 10px;
-            width: 16px;
-            height: 16px;
-        }
-        
-        .drive-file-name {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .drive-file-date {
-            font-size: 12px;
-            color: #888;
-            margin-left: 10px;
-        }
-        
-        .drive-modal-actions {
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .drive-modal-actions .left {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .drive-modal-actions .right {
-            display: flex;
-            gap: 10px;
-        }
-        
-        /* 새 파일 생성 모달 */
-        .new-file-modal {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: var(--modal-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 20px;
-            z-index: 200;
-            width: 400px;
-            max-width: 90%;
-            display: none;
-        }
-        
-        .new-file-modal.active {
-            display: block;
-        }
-        
-        .new-file-modal h2 {
-            margin-bottom: 15px;
-            font-size: 16px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-        
-        .file-input {
-            margin-bottom: 15px;
-        }
-        
-        .file-input label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        
-        .file-input input {
-            width: 100%;
-            padding: 8px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--font-color);
-            border-radius: 3px;
-        }
-        
-        .file-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        
-        .file-actions button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        
-        .file-actions .cancel {
-            background-color: var(--button-bg);
-            color: var(--font-color);
-        }
-        
-        .file-actions .create {
-            background-color: var(--header-bg);
-            color: white;
-        }
-        
         /* 알림 */
         .notification {
             position: fixed;
@@ -706,76 +488,219 @@
             gap: 15px;
         }
         
+        /* 파일 관리 모달 */
+        .file-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--modal-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 20px;
+            z-index: 200;
+            width: 500px;
+            max-width: 90%;
+            display: none;
+        }
+        
+        .file-modal.active {
+            display: block;
+        }
+        
+        .file-modal h2 {
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .file-input {
+            margin-bottom: 15px;
+        }
+        
+        .file-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .file-input input {
+            width: 100%;
+            padding: 8px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--font-color);
+            border-radius: 3px;
+        }
+        
+        .file-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .file-actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .file-actions .cancel {
+            background-color: var(--button-bg);
+            color: var(--font-color);
+        }
+        
+        .file-actions .save {
+            background-color: var(--header-bg);
+            color: white;
+        }
+        
+        /* 저장된 파일 목록 */
+        .saved-files {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow: auto;
+        }
+        
+        .saved-files h3 {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 8px;
+            background-color: var(--bg-color);
+            border-radius: 3px;
+        }
+        
+        .file-item:hover {
+            background-color: var(--dropdown-hover);
+        }
+        
+        .file-name {
+            cursor: pointer;
+        }
+        
+        .file-actions-small {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .file-action {
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .file-action:hover {
+            opacity: 1;
+        }
+        
+        /* 미니맵 스타일 */
+        .minimap {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100%;
+            border-left: 1px solid var(--border-color);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        /* 토글 스위치 */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--button-bg);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--header-bg);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(18px);
+        }
+        
         /* 로딩 스피너 */
         .spinner {
             display: inline-block;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: var(--header-bg);
             animation: spin 1s ease-in-out infinite;
-            margin-right: 8px;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
-        /* 로딩 오버레이 */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
+        /* 드롭다운 메뉴 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-content {
             display: none;
-        }
-        
-        .loading-overlay.active {
-            display: flex;
-        }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--header-bg);
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 20px;
-        }
-        
-        .loading-text {
-            color: white;
-            font-size: 16px;
-        }
-        
-        /* 드라이브 파일 드롭다운 메뉴 */
-        .file-dropdown {
             position: absolute;
             background-color: var(--dropdown-bg);
+            min-width: 160px;
+            z-index: 100;
             border: 1px solid var(--dropdown-border);
             border-radius: 3px;
-            min-width: 150px;
-            z-index: 300;
-            display: none;
         }
         
-        .file-dropdown.active {
+        .dropdown-content.active {
             display: block;
         }
         
         .dropdown-item {
-            padding: 8px 12px;
+            padding: 10px 15px;
             cursor: pointer;
-            font-size: 14px;
         }
         
         .dropdown-item:hover {
@@ -787,6 +712,52 @@
             background-color: var(--border-color);
             margin: 5px 0;
         }
+        
+        /* 자동 완성 */
+        .autocomplete {
+            position: absolute;
+            background-color: var(--dropdown-bg);
+            border: 1px solid var(--dropdown-border);
+            border-radius: 3px;
+            z-index: 100;
+            max-height: 200px;
+            overflow: auto;
+            display: none;
+        }
+        
+        .autocomplete.active {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .autocomplete-item:hover, .autocomplete-item.selected {
+            background-color: var(--dropdown-hover);
+        }
+        
+        /* 화면 분할 핸들 */
+        .resizer {
+            width: 6px;
+            background-color: var(--border-color);
+            cursor: col-resize;
+            z-index: 1;
+        }
+        
+        .resizer:hover {
+            background-color: var(--header-bg);
+        }
+        
+        /* 추가 에디터 스타일 */
+        .ace_editor {
+            background-color: var(--bg-color) !important;
+        }
+        
+        .ace_gutter {
+            background-color: var(--sidebar-bg) !important;
+        }
     </style>
 </head>
 <body>
@@ -797,64 +768,23 @@
             <span></span>
         </div>
         <div class="tab file-name-display">Untitled</div>
-        
+        <div class="new-tab" id="saveButton">
+            <span>저장</span>
+        </div>
         <div class="actions">
-            <button class="action-button" id="newFileButton">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="12" y1="18" x2="12" y2="12"></line>
-                    <line x1="9" y1="15" x2="15" y2="15"></line>
-                </svg>
-                새 파일
-            </button>
-            <button class="action-button" id="openFileButton">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                </svg>
-                열기
-            </button>
-            <button class="action-button primary" id="saveButton">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-                저장
-            </button>
-            
-            <div class="icon-button" id="searchButton" title="검색 (Ctrl+F)">
+            <div class="action-button" id="searchButton" title="검색 (Ctrl+F)">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
                     <path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.57-5.73A6.5 6.5 0 1 0 10 14.25a6.5 6.5 0 0 0 5.73-1.57l.27.28v.79l5 4.99L22.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                 </svg>
             </div>
-            <div class="icon-button" id="settingsButton" title="설정">
+            <div class="action-button" id="settingsButton" title="설정">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
                     <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.38-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.38.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
                 </svg>
             </div>
-            <div class="icon-button" id="helpButton" title="단축키">
+            <div class="action-button" id="helpButton" title="단축키">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
                     <path fill="currentColor" d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
-                </svg>
-            </div>
-        </div>
-        
-        <!-- 구글 로그인 버튼 (로그인 전) -->
-        <div class="google-sign-in" id="googleSignIn">
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=" class="google-icon" alt="Google">
-            구글 로그인
-        </div>
-        
-        <!-- 사용자 정보 (로그인 후) -->
-        <div class="user-info" id="userInfo" style="display: none;">
-            <img class="user-avatar" id="userAvatar" src="" alt="User">
-            <span class="user-name" id="userName"></span>
-            <div class="icon-button" id="userLogout" title="로그아웃">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
             </div>
         </div>
@@ -867,14 +797,19 @@
                     <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
                 </svg>
             </div>
-            <div class="sidebar-icon" id="driveButton" title="구글 드라이브">
+            <div class="sidebar-icon" id="fileManagerButton" title="파일 관리">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    <path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/>
                 </svg>
             </div>
             <div class="sidebar-icon" id="splitViewButton" title="분할 보기">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path d="M3 19h18v-6H3v6zm0-8h18V5H3v6z"/>
+                </svg>
+            </div>
+            <div class="sidebar-icon" id="minimapToggle" title="미니맵">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M3 3v18h18V3H3zm16 16H5V5h14v14zM11 7h2v2h-2zM7 7h2v2H7zm8 0h2v2h-2zm-8 4h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm-8 4h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/>
                 </svg>
             </div>
         </div>
@@ -886,6 +821,7 @@
                         <span class="tab-title">main.hbs</span>
                         <span class="close-tab">×</span>
                     </div>
+                    <div class="create-tab" title="새 파일">+</div>
                 </div>
                 <div class="editor-wrapper">
                     <div id="editor" class="code-editor"></div>
@@ -937,7 +873,7 @@
         <div class="status-item" id="cursor-position">줄: 1, 열: 1</div>
         <div class="status-item" id="file-type">Handlebars</div>
         <div class="status-right">
-            <div class="status-item" id="save-status">저장됨</div>
+            <div class="status-item" id="indent-size">들여쓰기: 2</div>
             <div class="status-item" id="encoding">UTF-8</div>
         </div>
     </div>
@@ -980,9 +916,9 @@
             </div>
         </div>
         <div class="settings-group">
-            <label for="autoSave">자동 저장</label>
+            <label for="autoComplete">자동 완성</label>
             <div class="toggle-switch">
-                <input type="checkbox" id="autoSave" checked>
+                <input type="checkbox" id="autoComplete" checked>
                 <span class="toggle-slider"></span>
             </div>
         </div>
@@ -1048,6 +984,10 @@
                 <span><span class="key">Ctrl</span> + <span class="key">\\</span></span>
             </div>
             <div class="shortcut-item">
+                <span>미니맵 토글</span>
+                <span><span class="key">Ctrl</span> + <span class="key">M</span></span>
+            </div>
+            <div class="shortcut-item">
                 <span>줌 인</span>
                 <span><span class="key">Ctrl</span> + <span class="key">+</span></span>
             </div>
@@ -1058,7 +998,7 @@
         </div>
         
         <div class="shortcut-group">
-            <h3>파일</h3>
+            <h3>기타</h3>
             <div class="shortcut-item">
                 <span>새 파일</span>
                 <span><span class="key">Ctrl</span> + <span class="key">N</span></span>
@@ -1068,132 +1008,47 @@
                 <span><span class="key">Ctrl</span> + <span class="key">O</span></span>
             </div>
             <div class="shortcut-item">
-                <span>저장</span>
-                <span><span class="key">Ctrl</span> + <span class="key">S</span></span>
+                <span>다음 탭</span>
+                <span><span class="key">Ctrl</span> + <span class="key">Tab</span></span>
+            </div>
+            <div class="shortcut-item">
+                <span>이전 탭</span>
+                <span><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">Tab</span></span>
             </div>
         </div>
     </div>
     
-    <!-- 구글 드라이브 파일 목록 모달 -->
-    <div class="drive-modal" id="driveModal">
-        <div class="drive-modal-header">
-            <h2>구글 드라이브 파일</h2>
-            <span class="close-modal">&times;</span>
-        </div>
-        
-        <div class="drive-filter">
-            <input type="text" id="fileFilter" placeholder="파일 이름 검색...">
-        </div>
-        
-        <div class="drive-files-container">
-            <ul class="drive-files-list" id="driveFilesList">
-                <!-- 파일 목록이 여기에 로드됩니다 -->
-                <li class="drive-file-item">
-                    <span class="drive-file-icon">📄</span>
-                    <span class="drive-file-name">로딩 중...</span>
-                </li>
-            </ul>
-        </div>
-        
-        <div class="drive-modal-actions">
-            <div class="left">
-                <button class="action-button" id="createNewDriveFile">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="18" x2="12" y2="12"></line>
-                        <line x1="9" y1="15" x2="15" y2="15"></line>
-                    </svg>
-                    새 파일 만들기
-                </button>
-                <button class="action-button" id="refreshDriveFiles">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
-                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
-                    </svg>
-                    새로고침
-                </button>
-            </div>
-            <div class="right">
-                <button class="action-button" id="closeDriveModal">닫기</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 새 파일 생성 모달 -->
-    <div class="new-file-modal" id="newFileModal">
+    <!-- 파일 관리 모달 -->
+    <div class="file-modal">
         <span class="close-modal">&times;</span>
-        <h2>새 파일 만들기</h2>
+        <h2>파일 관리</h2>
         
         <div class="file-input">
-            <label for="newFileName">파일 이름</label>
-            <input type="text" id="newFileName" placeholder="파일 이름 입력">
+            <label for="fileName">파일 이름</label>
+            <input type="text" id="fileName" placeholder="파일 이름 입력">
         </div>
         
         <div class="file-actions">
-            <button class="cancel" id="cancelNewFile">취소</button>
-            <button class="create" id="confirmNewFile">만들기</button>
-        </div>
-    </div>
-    
-    <!-- 파일 이름 변경 모달 -->
-    <div class="new-file-modal" id="renameFileModal">
-        <span class="close-modal">&times;</span>
-        <h2>파일 이름 변경</h2>
-        
-        <div class="file-input">
-            <label for="renameFileName">새 파일 이름</label>
-            <input type="text" id="renameFileName" placeholder="새 파일 이름 입력">
+            <button class="cancel" id="cancelSave">취소</button>
+            <button class="save" id="confirmSave">저장</button>
         </div>
         
-        <div class="file-actions">
-            <button class="cancel" id="cancelRename">취소</button>
-            <button class="create" id="confirmRename">변경</button>
+        <div class="saved-files">
+            <h3>저장된 파일</h3>
+            <div class="file-list" id="fileList">
+                <!-- 여기에 저장된 파일 목록이 표시됩니다 -->
+            </div>
         </div>
-    </div>
-    
-    <!-- 로딩 오버레이 -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">처리 중...</div>
-    </div>
-    
-    <!-- 파일 컨텍스트 메뉴 -->
-    <div class="file-dropdown" id="fileDropdown">
-        <div class="dropdown-item" id="openFileMenu">열기</div>
-        <div class="dropdown-item" id="renameFileMenu">이름 변경</div>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-item" id="deleteFileMenu">삭제</div>
     </div>
     
     <!-- 알림 -->
     <div class="notification" id="notification"></div>
     
     <script>
-        // 구글 API 설정 - 여기에 실제 API 키와 클라이언트 ID를 넣으세요
-        const API_KEY = '';
-        const CLIENT_ID = '';
-        const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
-        
-        // 앱 상태 변수
-        let isAuthenticated = false;
-        let currentUser = null;
-        let pickerInited = false;
-        let gisInited = false;
-        let tokenClient;
-        let currentFile = {
-            id: null,
-            name: "Untitled",
-            saved: true
-        };
-        
-        // 에디터 변수
-        let editor;
-        let autoSaveInterval;
-        
+        // 에디터 초기화 및 설정
         document.addEventListener('DOMContentLoaded', function() {
             // Ace 에디터 초기화
-            editor = ace.edit("editor");
+            const editor = ace.edit("editor");
             editor.setTheme("ace/theme/monokai");
             editor.session.setMode("ace/mode/handlebars");
             editor.setOptions({
@@ -1207,7 +1062,7 @@
                 showPrintMargin: false
             });
             
-            // 초기 코드 설정
+            // 샘플 코드로 초기화
             const initialCode = `{{#if {{getGlobalVar::toggle_response_mode}}=1}}}}
 
 ## Response Template
@@ -1237,6 +1092,14 @@
 {{/if}}`;
             editor.setValue(initialCode, -1);
             
+            // 현재 활성 파일 정보
+            let currentFile = {
+                name: "main.hbs",
+                path: "main.hbs",
+                saved: true
+            };
+            updateFileNameDisplay();
+            
             // 커서 위치 상태 업데이트
             editor.selection.on('changeCursor', updateCursorPosition);
             
@@ -1249,7 +1112,7 @@
             editor.session.on('change', function() {
                 if (currentFile.saved) {
                     currentFile.saved = false;
-                    updateSaveStatus();
+                    updateFileNameDisplay();
                 }
                 
                 // 미리보기 업데이트 (미리보기가 열려있을 때만)
@@ -1258,12 +1121,10 @@
                 }
             });
             
-            // 파일 이름 및 저장 상태 표시 업데이트
-            function updateSaveStatus() {
+            // 파일 이름 표시 업데이트
+            function updateFileNameDisplay() {
                 const fileNameDisplay = document.querySelector('.file-name-display');
                 fileNameDisplay.textContent = currentFile.name + (currentFile.saved ? '' : ' *');
-                
-                document.getElementById('save-status').textContent = currentFile.saved ? '저장됨' : '저장되지 않음';
             }
             
             // 미리보기 업데이트
@@ -1302,6 +1163,12 @@
                 document.querySelector('.keyboard-shortcuts').classList.toggle('active');
             });
             
+            // 파일 관리 모달 토글
+            document.getElementById('fileManagerButton').addEventListener('click', function() {
+                document.querySelector('.file-modal').classList.toggle('active');
+                loadSavedFiles();
+            });
+            
             // 분할 뷰 토글
             document.getElementById('splitViewButton').addEventListener('click', toggleSplitView);
             
@@ -1315,6 +1182,21 @@
                 }
             }
             
+            // 미니맵 토글
+            let minimapActive = false;
+            document.getElementById('minimapToggle').addEventListener('click', function() {
+                minimapActive = !minimapActive;
+                if (minimapActive) {
+                    editor.setOption("showFoldWidgets", true);
+                    editor.renderer.setShowGutter(true);
+                    editor.setOption("fontSize", "14px");
+                } else {
+                    editor.setOption("showFoldWidgets", false);
+                    editor.setOption("fontSize", "14px");
+                }
+                showNotification(minimapActive ? "미니맵 활성화" : "미니맵 비활성화", "success");
+            });
+            
             // 설정 변경 이벤트
             document.getElementById('themeSelect').addEventListener('change', function() {
                 editor.setTheme(`ace/theme/${this.value}`);
@@ -1326,39 +1208,16 @@
             
             document.getElementById('tabSizeSelect').addEventListener('change', function() {
                 editor.setOption("tabSize", parseInt(this.value));
+                document.getElementById('indent-size').textContent = `들여쓰기: ${this.value}`;
             });
             
             document.getElementById('wordWrap').addEventListener('change', function() {
                 editor.setOption("wrap", this.checked);
             });
             
-            document.getElementById('autoSave').addEventListener('change', function() {
-                if (this.checked) {
-                    enableAutoSave();
-                } else {
-                    disableAutoSave();
-                }
+            document.getElementById('autoComplete').addEventListener('change', function() {
+                editor.setOption("enableLiveAutocompletion", this.checked);
             });
-            
-            // 자동 저장 기능
-            function enableAutoSave() {
-                if (autoSaveInterval) {
-                    clearInterval(autoSaveInterval);
-                }
-                
-                autoSaveInterval = setInterval(function() {
-                    if (!currentFile.saved && isAuthenticated && currentFile.id) {
-                        saveFileToDrive();
-                    }
-                }, 30000); // 30초마다 자동 저장
-            }
-            
-            function disableAutoSave() {
-                if (autoSaveInterval) {
-                    clearInterval(autoSaveInterval);
-                    autoSaveInterval = null;
-                }
-            }
             
             // 검색 기능
             document.getElementById('findButton').addEventListener('click', function() {
@@ -1394,124 +1253,162 @@
             // 모달 닫기 버튼
             document.querySelectorAll('.close-modal').forEach(function(button) {
                 button.addEventListener('click', function() {
-                    this.closest('.keyboard-shortcuts, .drive-modal, .new-file-modal').classList.remove('active');
+                    this.closest('.keyboard-shortcuts, .file-modal').classList.remove('active');
                 });
             });
             
-            // 새 파일 버튼
-            document.getElementById('newFileButton').addEventListener('click', function() {
-                if (!currentFile.saved) {
-                    if (confirm("변경 사항을 저장하시겠습니까?")) {
-                        saveFileToDrive(function() {
-                            resetEditor();
-                        });
-                    } else {
-                        resetEditor();
-                    }
+            // 파일 저장
+            document.getElementById('saveButton').addEventListener('click', function() {
+                if (currentFile.name === "Untitled") {
+                    document.querySelector('.file-modal').classList.add('active');
+                    document.getElementById('fileName').focus();
                 } else {
-                    resetEditor();
+                    saveCurrentFile();
                 }
             });
             
-            // 에디터 초기화
-            function resetEditor() {
-                editor.setValue('', -1);
-                currentFile = {
-                    id: null,
-                    name: "Untitled",
-                    saved: true
-                };
-                updateSaveStatus();
+            document.getElementById('confirmSave').addEventListener('click', function() {
+                const fileName = document.getElementById('fileName').value.trim() || "Untitled";
+                currentFile.name = fileName.endsWith('.hbs') ? fileName : fileName + '.hbs';
+                saveCurrentFile();
+                document.querySelector('.file-modal').classList.remove('active');
+            });
+            
+            document.getElementById('cancelSave').addEventListener('click', function() {
+                document.querySelector('.file-modal').classList.remove('active');
+            });
+            
+            // 저장된 파일 로드
+            function loadSavedFiles() {
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+                
+                const savedFiles = JSON.parse(localStorage.getItem('handlebarsFiles')) || {};
+                
+                for (const fileName in savedFiles) {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    
+                    const fileNameSpan = document.createElement('span');
+                    fileNameSpan.className = 'file-name';
+                    fileNameSpan.textContent = fileName;
+                    fileNameSpan.addEventListener('click', function() {
+                        loadFile(fileName);
+                        document.querySelector('.file-modal').classList.remove('active');
+                    });
+                    
+                    const fileActions = document.createElement('div');
+                    fileActions.className = 'file-actions-small';
+                    
+                    const deleteButton = document.createElement('span');
+                    deleteButton.className = 'file-action';
+                    deleteButton.textContent = '삭제';
+                    deleteButton.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        deleteFile(fileName);
+                    });
+                    
+                    fileActions.appendChild(deleteButton);
+                    fileItem.appendChild(fileNameSpan);
+                    fileItem.appendChild(fileActions);
+                    
+                    fileList.appendChild(fileItem);
+                }
+                
+                if (Object.keys(savedFiles).length === 0) {
+                    const emptyMessage = document.createElement('div');
+                    emptyMessage.textContent = '저장된 파일이 없습니다.';
+                    fileList.appendChild(emptyMessage);
+                }
             }
             
-            // 드라이브 모달 열기
-            document.getElementById('driveButton').addEventListener('click', function() {
-                if (isAuthenticated) {
-                    document.getElementById('driveModal').classList.add('active');
-                    loadDriveFiles();
-                } else {
-                    handleAuthClick();
-                }
-            });
-            
-            // 열기 버튼
-            document.getElementById('openFileButton').addEventListener('click', function() {
-                if (isAuthenticated) {
-                    document.getElementById('driveModal').classList.add('active');
-                    loadDriveFiles();
-                } else {
-                    handleAuthClick();
-                }
-            });
-            
-            // 저장 버튼
-            document.getElementById('saveButton').addEventListener('click', function() {
-                if (!isAuthenticated) {
-                    handleAuthClick();
-                    return;
-                }
+            function saveCurrentFile() {
+                const content = editor.getValue();
+                const savedFiles = JSON.parse(localStorage.getItem('handlebarsFiles')) || {};
                 
-                if (currentFile.id) {
-                    saveFileToDrive();
-                } else {
-                    document.getElementById('newFileModal').classList.add('active');
-                    document.getElementById('newFileName').focus();
-                }
-            });
-            
-            // 새 파일 생성 확인
-            document.getElementById('confirmNewFile').addEventListener('click', function() {
-                const fileName = document.getElementById('newFileName').value.trim() || "Untitled";
-                createNewFile(fileName);
-                document.getElementById('newFileModal').classList.remove('active');
-            });
-            
-            // 새 파일 생성 취소
-            document.getElementById('cancelNewFile').addEventListener('click', function() {
-                document.getElementById('newFileModal').classList.remove('active');
-            });
-            
-            // 파일 이름 변경 확인
-            document.getElementById('confirmRename').addEventListener('click', function() {
-                const newFileName = document.getElementById('renameFileName').value.trim();
-                if (newFileName) {
-                    renameFile(currentFile.id, newFileName);
-                    document.getElementById('renameFileModal').classList.remove('active');
-                }
-            });
-            
-            // 파일 이름 변경 취소
-            document.getElementById('cancelRename').addEventListener('click', function() {
-                document.getElementById('renameFileModal').classList.remove('active');
-            });
-            
-            // 드라이브에 새 파일 생성
-            document.getElementById('createNewDriveFile').addEventListener('click', function() {
-                document.getElementById('newFileModal').classList.add('active');
-                document.getElementById('newFileName').focus();
-            });
-            
-            // 드라이브 파일 새로고침
-            document.getElementById('refreshDriveFiles').addEventListener('click', loadDriveFiles);
-            
-            // 드라이브 모달 닫기
-            document.getElementById('closeDriveModal').addEventListener('click', function() {
-                document.getElementById('driveModal').classList.remove('active');
-            });
-            
-            // 파일 필터링
-            document.getElementById('fileFilter').addEventListener('input', function() {
-                const filterText = this.value.toLowerCase();
-                const fileItems = document.querySelectorAll('.drive-file-item');
+                savedFiles[currentFile.name] = {
+                    content: content,
+                    lastModified: new Date().toISOString()
+                };
                 
-                fileItems.forEach(function(item) {
-                    const fileName = item.querySelector('.drive-file-name').textContent.toLowerCase();
-                    if (fileName.includes(filterText)) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
+                localStorage.setItem('handlebarsFiles', JSON.stringify(savedFiles));
+                
+                currentFile.saved = true;
+                updateFileNameDisplay();
+                
+                showNotification(`${currentFile.name} 파일이 저장되었습니다.`, 'success');
+            }
+            
+            function loadFile(fileName) {
+                const savedFiles = JSON.parse(localStorage.getItem('handlebarsFiles')) || {};
+                if (savedFiles[fileName]) {
+                    editor.setValue(savedFiles[fileName].content, -1);
+                    currentFile.name = fileName;
+                    currentFile.saved = true;
+                    updateFileNameDisplay();
+                    
+                    showNotification(`${fileName} 파일을 불러왔습니다.`, 'success');
+                }
+            }
+            
+            function deleteFile(fileName) {
+                if (confirm(`${fileName} 파일을 삭제하시겠습니까?`)) {
+                    const savedFiles = JSON.parse(localStorage.getItem('handlebarsFiles')) || {};
+                    
+                    if (savedFiles[fileName]) {
+                        delete savedFiles[fileName];
+                        localStorage.setItem('handlebarsFiles', JSON.stringify(savedFiles));
+                        loadSavedFiles();
+                        
+                        showNotification(`${fileName} 파일이 삭제되었습니다.`, 'success');
+                        
+                        if (currentFile.name === fileName) {
+                            editor.setValue('', -1);
+                            currentFile.name = 'Untitled';
+                            currentFile.saved = true;
+                            updateFileNameDisplay();
+                        }
                     }
-                });
+                }
+            }
+            
+            // 알림 표시
+            function showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type} active`;
+                
+                setTimeout(function() {
+                    notification.classList.remove('active');
+                }, 3000);
+            }
+            
+            // 새 파일 탭 생성 (이 예제에서는 단일 에디터만 사용)
+            document.querySelector('.create-tab').addEventListener('click', function() {
+                if (!currentFile.saved) {
+                    if (confirm("변경 사항을 저장하시겠습니까?")) {
+                        saveCurrentFile();
+                    }
+                }
+                
+                editor.setValue('', -1);
+                currentFile.name = 'Untitled';
+                currentFile.saved = true;
+                updateFileNameDisplay();
+            });
+            
+            // 탭 닫기
+            document.querySelector('.close-tab').addEventListener('click', function() {
+                if (!currentFile.saved) {
+                    if (confirm("변경 사항을 저장하시겠습니까?")) {
+                        saveCurrentFile();
+                    }
+                }
+                
+                editor.setValue('', -1);
+                currentFile.name = 'Untitled';
+                currentFile.saved = true;
+                updateFileNameDisplay();
             });
             
             // 키보드 단축키
@@ -1519,33 +1416,12 @@
                 // Ctrl+S: 저장
                 if (e.ctrlKey && e.key === 's') {
                     e.preventDefault();
-                    if (isAuthenticated) {
-                        if (currentFile.id) {
-                            saveFileToDrive();
-                        } else {
-                            document.getElementById('newFileModal').classList.add('active');
-                            document.getElementById('newFileName').focus();
-                        }
+                    if (currentFile.name === "Untitled") {
+                        document.querySelector('.file-modal').classList.add('active');
+                        document.getElementById('fileName').focus();
                     } else {
-                        handleAuthClick();
+                        saveCurrentFile();
                     }
-                }
-                
-                // Ctrl+O: 파일 열기
-                if (e.ctrlKey && e.key === 'o') {
-                    e.preventDefault();
-                    if (isAuthenticated) {
-                        document.getElementById('driveModal').classList.add('active');
-                        loadDriveFiles();
-                    } else {
-                        handleAuthClick();
-                    }
-                }
-                
-                // Ctrl+N: 새 파일
-                if (e.ctrlKey && e.key === 'n') {
-                    e.preventDefault();
-                    document.getElementById('newFileButton').click();
                 }
                 
                 // Ctrl+F: 검색
@@ -1567,447 +1443,17 @@
                     document.querySelector('.search-panel').classList.remove('active');
                     document.querySelector('.settings-menu').classList.remove('active');
                     document.querySelector('.keyboard-shortcuts').classList.remove('active');
-                    document.querySelector('.drive-modal').classList.remove('active');
-                    document.querySelector('.new-file-modal').classList.remove('active');
-                    document.getElementById('renameFileModal').classList.remove('active');
-                    document.getElementById('fileDropdown').classList.remove('active');
+                    document.querySelector('.file-modal').classList.remove('active');
                 }
             });
+            
+            // 초기 커서 위치 업데이트
+            updateCursorPosition();
             
             // 메뉴 토글
             document.getElementById('menuToggle').addEventListener('click', function() {
                 document.querySelector('.settings-menu').classList.toggle('active');
             });
-            
-            // 알림 표시
-            function showNotification(message, type = 'success') {
-                const notification = document.getElementById('notification');
-                notification.textContent = message;
-                notification.className = `notification ${type} active`;
-                
-                setTimeout(function() {
-                    notification.classList.remove('active');
-                }, 3000);
-            }
-            
-            // 로딩 표시
-            function showLoading(message = '처리 중...') {
-                const overlay = document.getElementById('loadingOverlay');
-                overlay.querySelector('.loading-text').textContent = message;
-                overlay.classList.add('active');
-            }
-            
-            function hideLoading() {
-                document.getElementById('loadingOverlay').classList.remove('active');
-            }
-            
-            // 초기 커서 위치 업데이트
-            updateCursorPosition();
-            
-            // 구글 API 초기화
-            function gapiInit() {
-                gapi.load('client', initGapiClient);
-            }
-            
-            // 구글 API 클라이언트 초기화
-            async function initGapiClient() {
-                await gapi.client.init({
-                    apiKey: API_KEY,
-                    discoveryDocs: DISCOVERY_DOCS,
-                });
-                
-                // GIS 초기화
-                initGoogleIdentity();
-            }
-            
-            // Google Identity Services 초기화
-            function initGoogleIdentity() {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
-                    callback: (tokenResponse) => {
-                        if (tokenResponse && !tokenResponse.error) {
-                            isAuthenticated = true;
-                            getUserInfo();
-                            showNotification('구글 드라이브에 연결되었습니다.', 'success');
-                            enableAutoSave();
-                        }
-                    }
-                });
-                
-                gisInited = true;
-                document.getElementById('googleSignIn').addEventListener('click', handleAuthClick);
-                document.getElementById('userLogout').addEventListener('click', handleSignoutClick);
-            }
-            
-            // 인증 처리
-            function handleAuthClick() {
-                if (!gisInited) {
-                    showNotification('구글 API를 초기화 중입니다. 잠시 후 다시 시도해주세요.', 'warning');
-                    return;
-                }
-                
-                tokenClient.requestAccessToken({ prompt: 'consent' });
-            }
-            
-            // 로그아웃 처리
-            function handleSignoutClick() {
-                const token = gapi.client.getToken();
-                if (token !== null) {
-                    google.accounts.oauth2.revoke(token.access_token);
-                    gapi.client.setToken('');
-                    isAuthenticated = false;
-                    currentUser = null;
-                    document.getElementById('userInfo').style.display = 'none';
-                    document.getElementById('googleSignIn').style.display = 'flex';
-                    disableAutoSave();
-                    showNotification('로그아웃되었습니다.', 'success');
-                }
-            }
-            
-            // 사용자 정보 가져오기
-            function getUserInfo() {
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://www.googleapis.com/oauth2/v3/userinfo');
-                xhr.setRequestHeader('Authorization', 'Bearer ' + gapi.client.getToken().access_token);
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        currentUser = JSON.parse(xhr.responseText);
-                        document.getElementById('userAvatar').src = currentUser.picture;
-                        document.getElementById('userName').textContent = currentUser.name;
-                        document.getElementById('userInfo').style.display = 'flex';
-                        document.getElementById('googleSignIn').style.display = 'none';
-                    }
-                };
-                xhr.send();
-            }
-            
-            // 드라이브 파일 로드
-            function loadDriveFiles() {
-                if (!isAuthenticated) {
-                    showNotification('로그인이 필요합니다.', 'warning');
-                    return;
-                }
-                
-                showLoading('파일 목록 로드 중...');
-                
-                gapi.client.drive.files.list({
-                    q: "mimeType='text/plain' or mimeType='application/x-handlebars' or name contains '.hbs' or name contains '.handlebars'",
-                    fields: 'files(id, name, mimeType, modifiedTime, iconLink)',
-                    spaces: 'drive',
-                    pageSize: 100
-                }).then(function(response) {
-                    const files = response.result.files;
-                    const filesList = document.getElementById('driveFilesList');
-                    filesList.innerHTML = '';
-                    
-                    if (files && files.length > 0) {
-                        files.sort((a, b) => new Date(b.modifiedTime) - new Date(a.modifiedTime));
-                        
-                        files.forEach(function(file) {
-                            const listItem = document.createElement('li');
-                            listItem.className = 'drive-file-item';
-                            listItem.setAttribute('data-file-id', file.id);
-                            
-                            const icon = document.createElement('span');
-                            icon.className = 'drive-file-icon';
-                            icon.textContent = '📄';
-                            
-                            const fileName = document.createElement('span');
-                            fileName.className = 'drive-file-name';
-                            fileName.textContent = file.name;
-                            
-                            const fileDate = document.createElement('span');
-                            fileDate.className = 'drive-file-date';
-                            fileDate.textContent = new Date(file.modifiedTime).toLocaleDateString();
-                            
-                            listItem.appendChild(icon);
-                            listItem.appendChild(fileName);
-                            listItem.appendChild(fileDate);
-                            
-                            listItem.addEventListener('click', function() {
-                                openFileFromDrive(file.id, file.name);
-                            });
-                            
-                            listItem.addEventListener('contextmenu', function(e) {
-                                e.preventDefault();
-                                showFileContextMenu(e, file.id, file.name);
-                            });
-                            
-                            filesList.appendChild(listItem);
-                        });
-                    } else {
-                        const emptyMessage = document.createElement('li');
-                        emptyMessage.className = 'drive-file-item';
-                        emptyMessage.style.justifyContent = 'center';
-                        emptyMessage.textContent = '파일이 없습니다.';
-                        filesList.appendChild(emptyMessage);
-                    }
-                    
-                    hideLoading();
-                }, function(error) {
-                    console.error(error);
-                    showNotification('파일 목록을 불러오는 중 오류가 발생했습니다.', 'error');
-                    hideLoading();
-                });
-            }
-            
-            // 드라이브에서 파일 열기
-            function openFileFromDrive(fileId, fileName) {
-                showLoading('파일 불러오는 중...');
-                
-                gapi.client.drive.files.get({
-                    fileId: fileId,
-                    alt: 'media'
-                }).then(function(response) {
-                    editor.setValue(response.body, -1);
-                    currentFile = {
-                        id: fileId,
-                        name: fileName,
-                        saved: true
-                    };
-                    updateSaveStatus();
-                    hideLoading();
-                    document.getElementById('driveModal').classList.remove('active');
-                    showNotification(`${fileName} 파일을 불러왔습니다.`, 'success');
-                }, function(error) {
-                    console.error(error);
-                    hideLoading();
-                    showNotification('파일을 불러오는 중 오류가 발생했습니다.', 'error');
-                });
-            }
-            
-            // 드라이브에 파일 저장
-            function saveFileToDrive(callback) {
-                if (!isAuthenticated) {
-                    showNotification('로그인이 필요합니다.', 'warning');
-                    return;
-                }
-                
-                showLoading('파일 저장 중...');
-                
-                const content = editor.getValue();
-                const metadata = {
-                    name: currentFile.name,
-                    mimeType: 'application/x-handlebars'
-                };
-                
-                if (currentFile.id) {
-                    // 기존 파일 업데이트
-                    const requestBody = content;
-                    const request = gapi.client.request({
-                        path: '/upload/drive/v3/files/' + currentFile.id,
-                        method: 'PATCH',
-                        params: { uploadType: 'media' },
-                        body: requestBody
-                    });
-                    
-                    request.execute(function(response) {
-                        currentFile.saved = true;
-                        updateSaveStatus();
-                        hideLoading();
-                        showNotification(`${currentFile.name} 파일이 저장되었습니다.`, 'success');
-                        
-                        if (callback) callback();
-                    });
-                } else {
-                    // 새 파일 생성
-                    const boundary = '-------314159265358979323846';
-                    const delimiter = "\r\n--" + boundary + "\r\n";
-                    const close_delim = "\r\n--" + boundary + "--";
-                    
-                    const contentType = 'application/x-handlebars';
-                    
-                    const multipartRequestBody =
-                        delimiter +
-                        'Content-Type: application/json\r\n\r\n' +
-                        JSON.stringify(metadata) +
-                        delimiter +
-                        'Content-Type: ' + contentType + '\r\n\r\n' +
-                        content +
-                        close_delim;
-                    
-                    const request = gapi.client.request({
-                        path: '/upload/drive/v3/files',
-                        method: 'POST',
-                        params: { uploadType: 'multipart' },
-                        headers: {
-                            'Content-Type': 'multipart/related; boundary="' + boundary + '"'
-                        },
-                        body: multipartRequestBody
-                    });
-                    
-                    request.execute(function(response) {
-                        if (response.id) {
-                            currentFile.id = response.id;
-                            currentFile.saved = true;
-                            updateSaveStatus();
-                            hideLoading();
-                            showNotification(`${currentFile.name} 파일이 저장되었습니다.`, 'success');
-                            
-                            if (callback) callback();
-                        }
-                    });
-                }
-            }
-            
-            // 새 파일 생성
-            function createNewFile(fileName) {
-                if (!isAuthenticated) {
-                    showNotification('로그인이 필요합니다.', 'warning');
-                    return;
-                }
-                
-                // 파일 확장자 확인 및 추가
-                if (!fileName.endsWith('.hbs') && !fileName.endsWith('.handlebars')) {
-                    fileName += '.hbs';
-                }
-                
-                currentFile.name = fileName;
-                currentFile.id = null;
-                currentFile.saved = false;
-                updateSaveStatus();
-                
-                // 파일 저장
-                saveFileToDrive();
-            }
-            
-            // 파일 이름 변경
-            function renameFile(fileId, newFileName) {
-                if (!isAuthenticated || !fileId) {
-                    showNotification('파일을 변경할 수 없습니다.', 'warning');
-                    return;
-                }
-                
-                // 파일 확장자 확인 및 추가
-                if (!newFileName.endsWith('.hbs') && !newFileName.endsWith('.handlebars')) {
-                    newFileName += '.hbs';
-                }
-                
-                showLoading('파일 이름 변경 중...');
-                
-                gapi.client.drive.files.update({
-                    fileId: fileId,
-                    resource: {
-                        name: newFileName
-                    }
-                }).then(function(response) {
-                    currentFile.name = newFileName;
-                    updateSaveStatus();
-                    hideLoading();
-                    showNotification('파일 이름이 변경되었습니다.', 'success');
-                    
-                    // 파일 목록이 열려있으면 새로고침
-                    if (document.getElementById('driveModal').classList.contains('active')) {
-                        loadDriveFiles();
-                    }
-                }, function(error) {
-                    console.error(error);
-                    hideLoading();
-                    showNotification('파일 이름 변경 중 오류가 발생했습니다.', 'error');
-                });
-            }
-            
-            // 파일 삭제
-            function deleteFile(fileId, fileName) {
-                if (!isAuthenticated || !fileId) {
-                    showNotification('파일을 삭제할 수 없습니다.', 'warning');
-                    return;
-                }
-                
-                if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
-                    return;
-                }
-                
-                showLoading('파일 삭제 중...');
-                
-                gapi.client.drive.files.delete({
-                    fileId: fileId
-                }).then(function(response) {
-                    // 현재 열린 파일이 삭제된 경우
-                    if (currentFile.id === fileId) {
-                        resetEditor();
-                    }
-                    
-                    hideLoading();
-                    showNotification('파일이 삭제되었습니다.', 'success');
-                    
-                    // 파일 목록 새로고침
-                    loadDriveFiles();
-                }, function(error) {
-                    console.error(error);
-                    hideLoading();
-                    showNotification('파일 삭제 중 오류가 발생했습니다.', 'error');
-                });
-            }
-            
-            // 파일 컨텍스트 메뉴 표시
-            function showFileContextMenu(event, fileId, fileName) {
-                const dropdown = document.getElementById('fileDropdown');
-                dropdown.style.left = event.pageX + 'px';
-                dropdown.style.top = event.pageY + 'px';
-                dropdown.classList.add('active');
-                
-                // 파일 정보 저장
-                dropdown.setAttribute('data-file-id', fileId);
-                dropdown.setAttribute('data-file-name', fileName);
-                
-                // 이벤트 처리
-                document.addEventListener('click', hideFileContextMenu);
-            }
-            
-            // 파일 컨텍스트 메뉴 숨기기
-            function hideFileContextMenu() {
-                document.getElementById('fileDropdown').classList.remove('active');
-                document.removeEventListener('click', hideFileContextMenu);
-            }
-            
-            // 파일 컨텍스트 메뉴 이벤트
-            document.getElementById('openFileMenu').addEventListener('click', function() {
-                const dropdown = document.getElementById('fileDropdown');
-                const fileId = dropdown.getAttribute('data-file-id');
-                const fileName = dropdown.getAttribute('data-file-name');
-                
-                if (fileId) {
-                    openFileFromDrive(fileId, fileName);
-                }
-            });
-            
-            document.getElementById('renameFileMenu').addEventListener('click', function() {
-                const dropdown = document.getElementById('fileDropdown');
-                const fileId = dropdown.getAttribute('data-file-id');
-                const fileName = dropdown.getAttribute('data-file-name');
-                
-                if (fileId) {
-                    document.getElementById('renameFileModal').classList.add('active');
-                    document.getElementById('renameFileName').value = fileName;
-                    document.getElementById('renameFileName').focus();
-                    
-                    // 현재 파일로 설정 (이름 변경을 위해)
-                    if (currentFile.id !== fileId) {
-                        currentFile.id = fileId;
-                        currentFile.name = fileName;
-                    }
-                }
-            });
-            
-            document.getElementById('deleteFileMenu').addEventListener('click', function() {
-                const dropdown = document.getElementById('fileDropdown');
-                const fileId = dropdown.getAttribute('data-file-id');
-                const fileName = dropdown.getAttribute('data-file-name');
-                
-                if (fileId) {
-                    deleteFile(fileId, fileName);
-                }
-            });
-            
-            // 구글 API 로드 시작
-            try {
-                gapiInit();
-            } catch (error) {
-                console.error('구글 API 초기화 오류:', error);
-                showNotification('구글 API 초기화 중 오류가 발생했습니다.', 'error');
-            }
         });
     </script>
 </body>
